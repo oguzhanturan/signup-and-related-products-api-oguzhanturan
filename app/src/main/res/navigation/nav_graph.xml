@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="school.cactus.succulentshop.login.LoginFragment"
+        android:label="LoginFragment">
+        <action
+            android:id="@+id/loginSuccessful"
+            app:destination="@id/productListFragment"
+            app:popUpTo="@id/nav_graph" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/productListFragment"
+        android:name="school.cactus.succulentshop.product.list.ProductListFragment"
+        android:label="ProductListFragment">
+        <action
+            android:id="@+id/openProductDetail"
+            app:destination="@id/productDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/productDetailFragment"
+        android:name="school.cactus.succulentshop.product.detail.ProductDetailFragment"
+        android:label="ProductDetailFragment">
+        <argument
+            android:name="productId"
+            android:defaultValue="-1"
+            app:argType="integer" />
+    </fragment>
+
+    <action
+        android:id="@+id/tokenExpired"
+        app:destination="@id/loginFragment"
+        app:popUpTo="@id/nav_graph" />
+</navigation>
