@@ -52,6 +52,9 @@ class LoginFragment : Fragment() {
                     sendLoginRequest()
                 }
             }
+            createAccountButton.setOnClickListener {
+                findNavController().navigate(R.id.signupFragment)
+            }
         }
 
         requireActivity().title = getString(R.string.log_in)

@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -16,8 +17,12 @@ import retrofit2.Response
 import school.cactus.succulentshop.R
 import school.cactus.succulentshop.api.api
 import school.cactus.succulentshop.api.product.Product
+import school.cactus.succulentshop.api.product.RelatedProducts
 import school.cactus.succulentshop.databinding.FragmentProductDetailBinding
+import school.cactus.succulentshop.product.detail.relatedproducts.RelatedProductAdapter
+import school.cactus.succulentshop.product.detail.relatedproducts.RelatedProductDecoration
 import school.cactus.succulentshop.product.toProductItem
+import school.cactus.succulentshop.product.toProductItemList
 
 class ProductDetailFragment : Fragment() {
     private var _binding: FragmentProductDetailBinding? = null
@@ -25,6 +30,8 @@ class ProductDetailFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val args: ProductDetailFragmentArgs by navArgs()
+
+    private val adapter = RelatedProductAdapter()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,7 +47,52 @@ class ProductDetailFragment : Fragment() {
 
         requireActivity().title = getString(R.string.app_name)
 
+        binding.relatedProductRecyclerView.adapter = adapter
+        binding.relatedProductRecyclerView.layoutManager =
+            StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
+        binding.relatedProductRecyclerView.addItemDecoration(RelatedProductDecoration())
+
+        adapter.itemClickListener = {
+            val action = ProductDetailFragmentDirections.openProductDetailFragmentSelf(it.id)
+            findNavController().navigate(action)
+        }
         fetchProduct()
+        fetchRelatedProduct()
+
+        fetchProduct()
+    }
+
+    private fun fetchRelatedProduct() {
+        api.getRelatedProductById(args.productId).enqueue(object : Callback<RelatedProducts> {
+            override fun onResponse(
+                call: Call<RelatedProducts>,
+                response: Response<RelatedProducts>
+            ) {
+                when (response.code()) {
+                    200 -> onSuccessRelatedProducts(response.body()!!)
+                    401 -> onTokenExpired()
+                    else -> onUnexpectedError()
+                }
+            }
+
+            override fun onFailure(call: Call<RelatedProducts>, t: Throwable) {
+                Snackbar.make(
+                    binding.root, R.string.check_your_connection,
+                    Snackbar.LENGTH_INDEFINITE
+                ).setAction(R.string.retry) {
+                    fetchRelatedProduct()
+                }.show()
+            }
+        })
+    }
+
+    private fun onSuccessRelatedProducts(relatedProducts: RelatedProducts) {
+        if (relatedProducts.products.isNotEmpty()) {
+            adapter.submitList(relatedProducts.products.toProductItemList())
+        } else {
+            binding.relatedProductsText.visibility = View.GONE
+            binding.relatedProductRecyclerView.visibility = View.GONE
+        }
     }
 
     private fun fetchProduct() {
@@ -66,7 +118,6 @@ class ProductDetailFragment : Fragment() {
 
     private fun onSuccess(product: Product) {
         val productItem = product.toProductItem()
-
         binding.apply {
             titleText.text = productItem.title
             priceText.text = productItem.price
@@ -76,6 +127,8 @@ class ProductDetailFragment : Fragment() {
                 .load(productItem.highResImageUrl)
                 .into(imageView)
         }
+        binding.progressBar2.setZ(1F);
+        binding.progressBar2.setVisibility(View.GONE);
     }
 
     private fun onTokenExpired() {

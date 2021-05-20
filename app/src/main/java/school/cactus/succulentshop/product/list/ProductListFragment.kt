@@ -1,9 +1,7 @@
 package school.cactus.succulentshop.product.list
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -16,6 +14,7 @@ import retrofit2.Response
 import school.cactus.succulentshop.R
 import school.cactus.succulentshop.api.api
 import school.cactus.succulentshop.api.product.Product
+import school.cactus.succulentshop.auth.JwtStore
 import school.cactus.succulentshop.databinding.FragmentProductListBinding
 import school.cactus.succulentshop.product.toProductItemList
 
@@ -26,6 +25,11 @@ class ProductListFragment : Fragment() {
 
     private val adapter = ProductAdapter()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -34,6 +38,18 @@ class ProductListFragment : Fragment() {
         _binding = FragmentProductListBinding.inflate(inflater, container, false)
         return binding.root
     }
+
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.actionbarmenu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        JwtStore(requireContext()).deleteJwt()
+        findNavController().navigate(R.id.tokenExpired)
+        return true
+    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -76,6 +92,8 @@ class ProductListFragment : Fragment() {
 
     private fun onSuccess(products: List<Product>) {
         adapter.submitList(products.toProductItemList())
+        binding.progressBar.z = 1F;
+        binding.progressBar.visibility = View.GONE;
     }
 
     private fun onUnexpectedError() {

@@ -9,9 +9,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <ProgressBar
+            android:id="@+id/progressBar2"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/imageView" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/startGuideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="16dp" />
+
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
+            android:contentDescription="@string/related_products"
             android:layout_height="300dp"
             android:scaleType="centerCrop"
             app:layout_constraintTop_toTopOf="parent"
@@ -60,12 +78,24 @@
             app:layout_constraintStart_toStartOf="@id/startGuideline"
             app:layout_constraintTop_toBottomOf="@id/priceText" />
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/startGuideline"
+        <TextView
+            android:id="@+id/relatedProductsText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_begin="16dp" />
+            android:layout_marginTop="11dp"
+            android:text="@string/related_products"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/startGuideline"
+            app:layout_constraintTop_toBottomOf="@+id/addToCardButton" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/relatedProductRecyclerView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="@id/startGuideline"
+            app:layout_constraintTop_toBottomOf="@+id/relatedProductsText" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/endGuideline"
@@ -74,5 +104,7 @@
             android:orientation="vertical"
             app:layout_constraintGuide_end="16dp" />
 
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </ScrollView>
