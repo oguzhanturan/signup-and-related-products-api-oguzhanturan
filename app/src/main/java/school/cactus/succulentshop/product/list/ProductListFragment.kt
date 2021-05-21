@@ -1,5 +1,8 @@
 package school.cactus.succulentshop.product.list
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
@@ -68,26 +71,46 @@ class ProductListFragment : Fragment() {
         }
     }
 
+    private fun isNetworkConnected(): Boolean {
+        val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+        return activeNetwork?.isConnectedOrConnecting == true
+    }
 
     fun fetchProducts() {
-        api.listAllProducts().enqueue(object : Callback<List<Product>> {
-            override fun onResponse(call: Call<List<Product>>, response: Response<List<Product>>) {
-                when (response.code()) {
-                    200 -> onSuccess(response.body()!!)
-                    401 -> onTokenExpired()
-                    else -> onUnexpectedError()
+        if (isNetworkConnected()) {
+            api.listAllProducts().enqueue(object : Callback<List<Product>> {
+                override fun onResponse(
+                    call: Call<List<Product>>,
+                    response: Response<List<Product>>
+                ) {
+                    when (response.code()) {
+                        200 -> onSuccess(response.body()!!)
+                        401 -> onTokenExpired()
+                        else -> onUnexpectedError()
+                    }
                 }
-            }
 
-            override fun onFailure(call: Call<List<Product>>, t: Throwable) {
-                Snackbar.make(
-                    binding.root, R.string.check_your_connection,
-                    Snackbar.LENGTH_INDEFINITE
-                ).setAction(R.string.retry) {
+                override fun onFailure(call: Call<List<Product>>, t: Throwable) {
+                    Snackbar.make(
+                        binding.root, R.string.check_your_connection,
+                        Snackbar.LENGTH_INDEFINITE
+                    ).setAction(R.string.retry) {
+                        fetchProducts()
+                    }.show()
+                }
+            })
+
+        } else {
+            Snackbar.make(
+                binding.root, R.string.check_your_connection,
+                Snackbar.LENGTH_INDEFINITE
+            )
+                .setAction(R.string.retry) {
                     fetchProducts()
-                }.show()
-            }
-        })
+                }
+                .show()
+        }
     }
 
     private fun onSuccess(products: List<Product>) {
