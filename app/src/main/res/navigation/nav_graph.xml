@@ -2,7 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/loginFragment">
+    app:startDestination="@id/productListFragment">
 
     <fragment
         android:id="@+id/loginFragment"
@@ -48,7 +48,7 @@
         android:name="school.cactus.succulentshop.signup.SignupFragment"
         android:label="SignupFragment">
         <action
-            android:id="@+id/action_signupFragment_to_productListFragment"
+            android:id="@+id/signUpSuccessful"
             app:destination="@id/productListFragment" />
     </fragment>
 </navigation>
