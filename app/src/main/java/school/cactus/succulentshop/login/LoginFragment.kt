@@ -109,7 +109,9 @@ class LoginFragment : Fragment() {
 
     private fun onLoginSuccess(response: LoginResponse) {
         JwtStore(requireContext()).saveJwt(response.jwt)
-        findNavController().navigate(R.id.loginSuccessful)
+        if (findNavController().currentDestination?.id == R.id.loginFragment) {
+            findNavController().navigate(R.id.loginSuccessful)
+        }
     }
 
     private fun TextInputLayout.isValid(): Boolean {

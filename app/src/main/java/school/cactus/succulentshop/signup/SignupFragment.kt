@@ -67,7 +67,7 @@ class SignupFragment : Fragment() {
             }
         }
 
-        requireActivity().title = getString(R.string.log_in)
+        requireActivity().title = getString(R.string.sign_up)
     }
 
     private fun isNetworkConnected(): Boolean {
@@ -90,7 +90,6 @@ class SignupFragment : Fragment() {
                 ) {
                     when (response.code()) {
                         200 -> onRegisterSuccess(response.body()!!)
-                        401 -> navigateToLogin()
                         in 400..499 -> onClientError(response.errorBody())
                         else -> onUnexpectedError()
                     }
@@ -125,7 +124,9 @@ class SignupFragment : Fragment() {
 
     private fun onRegisterSuccess(response: RegisterResponse) {
         JwtStore(requireContext()).saveJwt(response.jwt)
-        findNavController().navigate(R.id.productListFragment)
+        if (findNavController().currentDestination?.id == R.id.signupFragment) {
+            findNavController().navigate(R.id.signUpSuccessful)
+        }
     }
 
     private fun onUnexpectedError() {
