@@ -14,7 +14,8 @@ class RelatedProductDecoration : RecyclerView.ItemDecoration() {
         parent: RecyclerView,
         state: RecyclerView.State
     ) {
-        val spacing = view.context.resources.getDimensionPixelSize(R.dimen.item_product_spacing)
+        val spacing =
+            view.context.resources.getDimensionPixelSize(R.dimen.item_product_list_spacing)
         val position = parent.getChildAdapterPosition(view)
         val spanIndex = (view.layoutParams as StaggeredGridLayoutManager.LayoutParams).spanIndex
 
