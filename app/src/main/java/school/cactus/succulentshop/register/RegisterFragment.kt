@@ -1,8 +1,5 @@
-package school.cactus.succulentshop.signup
+package school.cactus.succulentshop.register
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -24,14 +21,14 @@ import school.cactus.succulentshop.api.register.RegisterErrorResponse
 import school.cactus.succulentshop.api.register.RegisterRequest
 import school.cactus.succulentshop.api.register.RegisterResponse
 import school.cactus.succulentshop.auth.JwtStore
-import school.cactus.succulentshop.databinding.FragmentSignupBinding
-import school.cactus.succulentshop.signup.validation.EmailValidator
-import school.cactus.succulentshop.signup.validation.PasswordValidator
-import school.cactus.succulentshop.signup.validation.UsernameValidator
+import school.cactus.succulentshop.databinding.FragmentRegisterBinding
+import school.cactus.succulentshop.register.validation.EmailValidator
+import school.cactus.succulentshop.register.validation.PasswordValidator
+import school.cactus.succulentshop.register.validation.UsernameValidator
 
 
-class SignupFragment : Fragment() {
-    private var _binding: FragmentSignupBinding? = null
+class RegisterFragment : Fragment() {
+    private var _binding: FragmentRegisterBinding? = null
 
     private val binding get() = _binding!!
 
@@ -46,7 +43,7 @@ class SignupFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentSignupBinding.inflate(inflater, container, false)
+        _binding = FragmentRegisterBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -68,58 +65,42 @@ class SignupFragment : Fragment() {
         requireActivity().title = getString(R.string.sign_up)
     }
 
-    private fun isNetworkConnected(): Boolean {
-        val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-        return activeNetwork?.isConnectedOrConnecting == true
-    }
-
     private fun sendSignupRequest() {
         val email = binding.emailInputLayout.editText!!.text.toString()
         val username = binding.usernameInputLayout.editText!!.text.toString()
         val password = binding.passwordInputLayout.editText!!.text.toString()
 
         val request = RegisterRequest(email, password, username)
-        if (isNetworkConnected()) {
-            api.register(request).enqueue(object : Callback<RegisterResponse> {
-                override fun onResponse(
-                    call: Call<RegisterResponse>,
-                    response: Response<RegisterResponse>
-                ) {
-                    when (response.code()) {
-                        in 200..299 -> onRegisterSuccess(response.body()!!)
-                        in 400..499 -> onClientError(response.errorBody()!!)
-                        else -> onUnexpectedError()
-                    }
-                }
 
-                override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
-                    Snackbar.make(
-                        binding.root, R.string.check_your_connection,
-                        Snackbar.LENGTH_INDEFINITE
-                    )
-                        .setAction(R.string.retry) {
-                            sendSignupRequest()
-                        }
-                        .show()
+        api.register(request).enqueue(object : Callback<RegisterResponse> {
+            override fun onResponse(
+                call: Call<RegisterResponse>,
+                response: Response<RegisterResponse>
+            ) {
+                when (response.code()) {
+                    in 200..299 -> onSignupSuccess(response.body()!!)
+                    in 400..499 -> onClientError(response.errorBody()!!)
+                    else -> onUnexpectedError()
                 }
-            })
-        } else {
-            Snackbar.make(
-                binding.root, R.string.check_your_connection,
-                Snackbar.LENGTH_INDEFINITE
-            )
-                .setAction(R.string.retry) {
-                    sendSignupRequest()
-                }
-                .show()
-        }
+            }
+
+            override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
+                Snackbar.make(
+                    binding.root, R.string.check_your_connection,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                    .setAction(R.string.retry) {
+                        sendSignupRequest()
+                    }
+                    .show()
+            }
+        })
     }
 
-    private fun onRegisterSuccess(response: RegisterResponse) {
+    private fun onSignupSuccess(response: RegisterResponse) {
         JwtStore(requireContext()).saveJwt(response.jwt)
-        if (findNavController().currentDestination?.id == R.id.signupFragment) {
-            findNavController().navigate(R.id.signUpSuccessful)
+        if (findNavController().currentDestination?.id == R.id.registerFragment) {
+            findNavController().navigate(R.id.registerSuccessful)
         }
     }
 
@@ -132,9 +113,9 @@ class SignupFragment : Fragment() {
 
     private fun onClientError(errorBody: ResponseBody?) {
         try {
-            val errorBody = errorBody!!.string()
             val gson = GsonBuilder().create()
-            val registerErrorResponse = gson.fromJson(errorBody, RegisterErrorResponse::class.java)
+            val registerErrorResponse =
+                gson.fromJson(errorBody!!.string(), RegisterErrorResponse::class.java)
             val message = registerErrorResponse.message[0].messages[0].message
             Snackbar.make(binding.root, message, LENGTH_LONG).show()
         } catch (ex: JsonSyntaxException) {

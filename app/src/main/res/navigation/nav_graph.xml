@@ -14,7 +14,7 @@
             app:popUpTo="@id/nav_graph" />
         <action
             android:id="@+id/action_loginFragment_to_signupFragment"
-            app:destination="@id/signupFragment" />
+            app:destination="@id/registerFragment" />
     </fragment>
 
     <fragment
@@ -44,11 +44,11 @@
         app:destination="@id/loginFragment"
         app:popUpTo="@id/nav_graph" />
     <fragment
-        android:id="@+id/signupFragment"
-        android:name="school.cactus.succulentshop.signup.SignupFragment"
-        android:label="SignupFragment">
+        android:id="@+id/registerFragment"
+        android:name="school.cactus.succulentshop.register.RegisterFragment"
+        android:label="RegisterFragment">
         <action
-            android:id="@+id/signUpSuccessful"
+            android:id="@+id/registerSuccessful"
             app:destination="@id/productListFragment"
             app:popUpTo="@id/nav_graph" />
     </fragment>

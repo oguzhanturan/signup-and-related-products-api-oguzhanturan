@@ -53,7 +53,7 @@ class LoginFragment : Fragment() {
                 }
             }
             createAccountButton.setOnClickListener {
-                findNavController().navigate(R.id.signupFragment)
+                findNavController().navigate(R.id.registerFragment)
             }
         }
 

@@ -1,10 +1,9 @@
 package school.cactus.succulentshop.product.list
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkInfo
+import android.app.Activity
 import android.os.Bundle
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -20,6 +19,7 @@ import school.cactus.succulentshop.api.product.Product
 import school.cactus.succulentshop.auth.JwtStore
 import school.cactus.succulentshop.databinding.FragmentProductListBinding
 import school.cactus.succulentshop.product.toProductItemList
+
 
 class ProductListFragment : Fragment() {
     private var _binding: FragmentProductListBinding? = null
@@ -39,6 +39,7 @@ class ProductListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProductListBinding.inflate(inflater, container, false)
+        hideSoftKeyboard()
         return binding.root
     }
 
@@ -71,52 +72,35 @@ class ProductListFragment : Fragment() {
         }
     }
 
-    private fun isNetworkConnected(): Boolean {
-        val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-        return activeNetwork?.isConnectedOrConnecting == true
-    }
-
     fun fetchProducts() {
-        if (isNetworkConnected()) {
-            api.listAllProducts().enqueue(object : Callback<List<Product>> {
-                override fun onResponse(
-                    call: Call<List<Product>>,
-                    response: Response<List<Product>>
-                ) {
-                    when (response.code()) {
-                        200 -> onSuccess(response.body()!!)
-                        401 -> onTokenExpired()
-                        else -> onUnexpectedError()
-                    }
+        api.listAllProducts().enqueue(object : Callback<List<Product>> {
+            override fun onResponse(
+                call: Call<List<Product>>,
+                response: Response<List<Product>>
+            ) {
+                when (response.code()) {
+                    200 -> onSuccess(response.body()!!)
+                    401 -> onTokenExpired()
+                    else -> onUnexpectedError()
                 }
+            }
 
-                override fun onFailure(call: Call<List<Product>>, t: Throwable) {
-                    Snackbar.make(
-                        binding.root, R.string.check_your_connection,
-                        Snackbar.LENGTH_INDEFINITE
-                    ).setAction(R.string.retry) {
-                        fetchProducts()
-                    }.show()
-                }
-            })
-
-        } else {
-            Snackbar.make(
-                binding.root, R.string.check_your_connection,
-                Snackbar.LENGTH_INDEFINITE
-            )
-                .setAction(R.string.retry) {
+            override fun onFailure(call: Call<List<Product>>, t: Throwable) {
+                Snackbar.make(
+                    binding.root, R.string.check_your_connection,
+                    Snackbar.LENGTH_INDEFINITE
+                ).setAction(R.string.retry) {
                     fetchProducts()
-                }
-                .show()
-        }
+                }.show()
+            }
+        })
     }
 
     private fun onSuccess(products: List<Product>) {
         adapter.submitList(products.toProductItemList())
-        binding.progressBar.z = 1F;
-        binding.progressBar.visibility = View.GONE;
+        binding.recyclerView.z = 0F
+        binding.progressBar.z = 1F
+        binding.progressBar.visibility = View.GONE
     }
 
     private fun onUnexpectedError() {
@@ -140,5 +124,11 @@ class ProductListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun hideSoftKeyboard() {
+        val inputMethodManager =
+            requireActivity().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(requireActivity().currentFocus!!.windowToken, 0)
     }
 }

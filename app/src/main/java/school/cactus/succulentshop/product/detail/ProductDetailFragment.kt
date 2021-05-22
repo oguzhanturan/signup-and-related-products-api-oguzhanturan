@@ -58,8 +58,6 @@ class ProductDetailFragment : Fragment() {
         }
         fetchProduct()
         fetchRelatedProduct()
-
-        fetchProduct()
     }
 
     private fun fetchRelatedProduct() {
@@ -127,8 +125,8 @@ class ProductDetailFragment : Fragment() {
                 .load(productItem.highResImageUrl)
                 .into(imageView)
         }
-        binding.progressBar2.setZ(1F);
-        binding.progressBar2.setVisibility(View.GONE);
+        binding.progressBar2.z = 1F
+        binding.progressBar2.visibility = View.GONE
     }
 
     private fun onTokenExpired() {
