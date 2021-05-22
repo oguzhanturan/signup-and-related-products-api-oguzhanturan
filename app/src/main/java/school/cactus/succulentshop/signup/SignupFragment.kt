@@ -9,10 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import okhttp3.ResponseBody
@@ -20,8 +19,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import school.cactus.succulentshop.R
-import school.cactus.succulentshop.api.GenericErrorResponse
 import school.cactus.succulentshop.api.api
+import school.cactus.succulentshop.api.register.RegisterErrorResponse
 import school.cactus.succulentshop.api.register.RegisterRequest
 import school.cactus.succulentshop.api.register.RegisterResponse
 import school.cactus.succulentshop.auth.JwtStore
@@ -58,7 +57,6 @@ class SignupFragment : Fragment() {
                     emailInputLayout.isValid()
                 ) {
                     sendSignupRequest()
-                    findNavController().navigate(R.id.productListFragment)
                 }
             }
 
@@ -89,8 +87,8 @@ class SignupFragment : Fragment() {
                     response: Response<RegisterResponse>
                 ) {
                     when (response.code()) {
-                        200 -> onRegisterSuccess(response.body()!!)
-                        in 400..499 -> onClientError(response.errorBody())
+                        in 200..299 -> onRegisterSuccess(response.body()!!)
+                        in 400..499 -> onClientError(response.errorBody()!!)
                         else -> onUnexpectedError()
                     }
                 }
@@ -118,10 +116,6 @@ class SignupFragment : Fragment() {
         }
     }
 
-    private fun navigateToLogin() {
-        findNavController().navigate(R.id.loginFragment)
-    }
-
     private fun onRegisterSuccess(response: RegisterResponse) {
         JwtStore(requireContext()).saveJwt(response.jwt)
         if (findNavController().currentDestination?.id == R.id.signupFragment) {
@@ -132,26 +126,20 @@ class SignupFragment : Fragment() {
     private fun onUnexpectedError() {
         Snackbar.make(
             binding.root, R.string.unexpected_error_occurred,
-            BaseTransientBottomBar.LENGTH_LONG
+            LENGTH_LONG
         ).show()
     }
 
     private fun onClientError(errorBody: ResponseBody?) {
-        if (errorBody == null) return onUnexpectedError()
-
         try {
-            val message = errorBody.errorMessage()
-            Snackbar.make(binding.root, message, BaseTransientBottomBar.LENGTH_LONG).show()
+            val errorBody = errorBody!!.string()
+            val gson = GsonBuilder().create()
+            val registerErrorResponse = gson.fromJson(errorBody, RegisterErrorResponse::class.java)
+            val message = registerErrorResponse.message[0].messages[0].message
+            Snackbar.make(binding.root, message, LENGTH_LONG).show()
         } catch (ex: JsonSyntaxException) {
             onUnexpectedError()
         }
-    }
-
-    private fun ResponseBody.errorMessage(): String {
-        val errorBody = string()
-        val gson: Gson = GsonBuilder().create()
-        val registerErrorResponse = gson.fromJson(errorBody, GenericErrorResponse::class.java)
-        return registerErrorResponse.message[0].messages[0].message
     }
 
     private fun TextInputLayout.isValid(): Boolean {
